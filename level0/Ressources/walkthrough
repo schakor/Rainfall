@@ -1,0 +1,14 @@
+HOW TO GET THE FLAG:
+
+By doing ls -la on the /home/user/level0, we see that the binary file level0 whose owner is level1 has its access flags setuid on. If we find a way to launch a shell within the program, it will have the right of level1.
+
+First we execute the binary file level0, ./level0 => we get a Segmentation fault
+
+Then we execute level0 with an argument, ./level0 lol => "No !" is printed on the standard output
+
+Let's analyse the main of binary file level0, gdb level0 => then disas main
+
+Putting a breakpoint at main+17, we see that the program calls the function atoi on the first argument of the command line (argv[1]) and compare its return to the number 423 (hex 0x1a7). If it's not equal to 423, it jumps directly to main+152 and calls fwrite, otherwise do some function calls (strdup, getegid, geteuid, setresgid) and execv to launch a shell.
+
+We can go to the directory /home/user/level1 and cat the .pass file.
+
