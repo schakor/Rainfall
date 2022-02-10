@@ -1,0 +1,9 @@
+HOW TO FIND THE FLAG:
+
+We are going to analyse this binary file with gdb. gdb level8
+
+disas main -> long function. The goal is here to run the 'system("/bin/sh")'.
+
+We type first 'auth ' then 'servicelolonvavoirsicestok' then 'login'
+
+We get access to the shell -> cat /home/user/level9/.pass -> c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a

