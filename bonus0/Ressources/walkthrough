@@ -1,0 +1,16 @@
+HOW TO FIND THE FLAG:
+
+Let's analyse the binary file bonus0. gdb level0
+
+info functions -> 3 functions main, pp and p
+
+disas main -> create a char array of size 42 then call to pp and puts with the argument of the array.
+
+disas pp -> in the function pp two char arrays of size 20 created on the stack
+two calls of the function p with the argument of the first array and the string " - " then the same but with the second array 
+
+then strcpy the first array in the argument buf of the function. put a space a the end of buf and strcat the second array in buf
+
+disas p -> create a char array of size 4096 .print the second argument then wait for the user to type with read then search for a '\n' then strncpy 20 char of buf in the first argument.
+
+The problem that can occurs here is that if the user types more than 20 chars then the string will not be null terminated and it will cause a segmentation fault. We are going to exploit this

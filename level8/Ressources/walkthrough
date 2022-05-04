@@ -4,6 +4,25 @@ We are going to analyse this binary file with gdb. gdb level8
 
 disas main -> long function. The goal is here to run the 'system("/bin/sh")'.
 
-We type first 'auth ' then 'servicelolonvavoirsicestok' then 'login'
+After analysing the binary file and transforming it into c language we can see that there is 4 commands that that the user can use ;
 
+- "auth " -> malloc of size 4 for the global variable auth and copy the content what is after 'auth ' in buf if the size of this content is lower than 30
+
+- "reset" -> free the global variable auth
+
+- "service" -> strncmp "service" 6 -> if buf is 'servic' then ok and strdup what is after 'servic{CHAR}' 
+
+- "login" -> if the char at the index 32 in global variable auis not '\0' then execute the shell otherwise write Password etc
+
+The goal here is in order to execute the shell to have a value different to 0 in the index 32 of auth,
+
+For that first we type the command "auth " in order to malloc auth 
+
+Then we type 'serviccopyenoughchar?' we see service is 16 bytes after auth. In order to execute the shell we need to put 16 or more chars after servicc
+
+Here it's not enough so we get Password when we type "login"
+
+Let's try again this time with enough char.
+
+./level8 -> "auth " -> "serviccopyenoughcharthistime" -> "login" -> 
 We get access to the shell -> cat /home/user/level9/.pass -> c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a

