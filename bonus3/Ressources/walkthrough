@@ -1,0 +1,18 @@
+HOW TO FIND THE FLAG:
+
+By analysing the binary file bonus3 with gdb and recreating the c file ->
+
+We can see that the program return 1 if fd is NULL or argc is different of 2.
+
+We have to put one argument so the payload will be like this ./bonus3 "SOMETHING"
+
+fd is not going to be null because it opens the .pass file in end reportory and the group of file bonus3 is end.
+
+In order to execute the shell the strcmp must be equal to 0 between buffer1 and argv[1]. 
+
+So with and empty string -> atoi("") = 0 so buffer[0] = 0 and argv[1] = 0 too.
+
+./bonus3 '' -> whoami -> end -> $ cat /home/user/end/.pass
+3321b6f81659f9a71c76616f606e4b50189cecfea611393d5d649f75e157353c
+
+It's finished.
